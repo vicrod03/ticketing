@@ -6,77 +6,74 @@ import { natsWrapper } from '../../nats-wrapper';
 
 it('returns a 404 if the provided id does not exist', async () => {
   const id = new mongoose.Types.ObjectId().toHexString();
-
   await request(app)
     .put(`/api/tickets/${id}`)
     .set('Cookie', global.signin())
     .send({
-      title: 'asfafafas',
-      price: 20
+      title: 'aslkdfj',
+      price: 20,
     })
     .expect(404);
 });
 
-it('returns a 401 if user is not authenticated', async () => {
+it('returns a 401 if the user is not authenticated', async () => {
   const id = new mongoose.Types.ObjectId().toHexString();
-
   await request(app)
-  .put(`/api/tickets/${id}`)
-  .send({
-    title: 'asfafafas',
-    price: 20
-  })
-  .expect(401);
+    .put(`/api/tickets/${id}`)
+    .send({
+      title: 'aslkdfj',
+      price: 20,
+    })
+    .expect(401);
 });
 
 it('returns a 401 if the user does not own the ticket', async () => {
   const response = await request(app)
-    .post('api/tickets')
+    .post('/api/tickets')
     .set('Cookie', global.signin())
     .send({
-      title: 'adadada',
-      price: 20
+      title: 'asldkfj',
+      price: 20,
     });
-  
+
   await request(app)
-    .put(`api/tickets/${response.body.id}`)
+    .put(`/api/tickets/${response.body.id}`)
     .set('Cookie', global.signin())
     .send({
-      title: 'nkandkandada',
-      price: 40
+      title: 'alskdjflskjdf',
+      price: 1000,
     })
-    .expect(404);
+    .expect(401);
 });
 
 it('returns a 400 if the user provides an invalid title or price', async () => {
   const cookie = global.signin();
-  
+
   const response = await request(app)
     .post('/api/tickets')
     .set('Cookie', cookie)
     .send({
-      title: 'title',
-      price: 20
+      title: 'asldkfj',
+      price: 20,
+    });
+
+  await request(app)
+    .put(`/api/tickets/${response.body.id}`)
+    .set('Cookie', cookie)
+    .send({
+      title: '',
+      price: 20,
     })
-    .expect(201);
+    .expect(400);
 
   await request(app)
-  .put(`api/tickets/${response.body.id}`)
-  .set('Cookie', cookie)
-  .send({
-    title: '',
-    price: 40
-  })
-  .expect(404);
-
-  await request(app)
-  .put(`api/tickets/${response.body.id}`)
-  .set('Cookie', cookie)
-  .send({
-    title: 'haosdhahdasdaa',
-    price: -55
-  })
-  .expect(404);
+    .put(`/api/tickets/${response.body.id}`)
+    .set('Cookie', cookie)
+    .send({
+      title: 'alskdfjj',
+      price: -10,
+    })
+    .expect(400);
 });
 
 it('updates the ticket provided valid inputs', async () => {
@@ -126,7 +123,7 @@ it('publishes an event', async () => {
       price: 100,
     })
     .expect(200);
-  
+
   expect(natsWrapper.client.publish).toHaveBeenCalled();
 });
 
@@ -142,7 +139,7 @@ it('rejects updates if the ticket is reserved', async () => {
     });
 
   const ticket = await Ticket.findById(response.body.id);
-  ticket!.set({ orderId: mongoose.Types.ObjectId().toHexString()})
+  ticket!.set({ orderId: mongoose.Types.ObjectId().toHexString() });
   await ticket!.save();
 
   await request(app)
@@ -153,4 +150,4 @@ it('rejects updates if the ticket is reserved', async () => {
       price: 100,
     })
     .expect(400);
-})
+});
